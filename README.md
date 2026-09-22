@@ -89,18 +89,6 @@ docker compose up -d
 docker compose exec backend python -m app.scripts.init_schema
 ```
 
-### 3. 访问入口
-
-> 统一通过 HTTPS 入口访问，避免直接使用原始端口导致缓存/跨域问题。
-
-| 入口 | 地址 |
-|---|---|
-| 用户端（Vue） | https://localhost |
-| 管理后台（React） | https://localhost/app/ |
-| API 健康检查 | https://localhost/api/health |
-| API 文档 | https://localhost/api/docs |
-| Grafana 监控 | http://localhost:3000 |
-
 ---
 
 ## 服务与端口
