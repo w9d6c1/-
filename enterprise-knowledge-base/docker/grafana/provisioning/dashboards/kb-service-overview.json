@@ -1,0 +1,67 @@
+{
+  "uid": "kb-service-overview",
+  "title": "服务概览",
+  "tags": ["knowledge-base", "ops"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "refresh": "30s",
+  "panels": [
+    {
+      "gridPos": {"h": 6, "w": 6, "x": 0, "y": 0},
+      "title": "后端 QPS",
+      "type": "stat",
+      "fieldConfig": {"defaults": {"unit": "reqps"}},
+      "targets": [{"datasource": "Loki", "expr": "sum(rate({container_name=\"kb-backend\"}[1m]))" }],
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "gridPos": {"h": 6, "w": 6, "x": 6, "y": 0},
+      "title": "错误率 (5min)",
+      "type": "stat",
+      "fieldConfig": {"defaults": {"unit": "percent", "min": 0, "max": 100}},
+      "targets": [{"datasource": "Loki", "expr": "sum(rate({container_name=\"kb-backend\"} |= \"error\" [5m])) / sum(rate({container_name=\"kb-backend\"}[5m])) * 100" }],
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "gridPos": {"h": 10, "w": 12, "x": 12, "y": 0},
+      "title": "容器健康状态",
+      "type": "stat",
+      "fieldConfig": {"defaults": {"mappings": [{"type": "value", "value": 1, "text": "UP"}, {"type": "value", "value": 0, "text": "DOWN"}]}},
+      "targets": [{"datasource": "Prometheus", "expr": "time() - container_last_seen{name=~\"kb-.*\"} < 60", "legendFormat": "{{name}}"}],
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 6},
+      "title": "容器 CPU 使用率",
+      "type": "timeseries",
+      "targets": [{"datasource": "Prometheus", "expr": "rate(container_cpu_usage_seconds_total{name=~\"kb-.*\"}[5m]) * 100", "legendFormat": "{{name}}"}],
+      "fieldConfig": {"defaults": {"unit": "percent", "min": 0, "max": 100}}
+    },
+    {
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 6},
+      "title": "容器内存使用",
+      "type": "timeseries",
+      "targets": [{"datasource": "Prometheus", "expr": "container_memory_usage_bytes{name=~\"kb-.*\"} / 1024 / 1024", "legendFormat": "{{name}}"}],
+      "fieldConfig": {"defaults": {"unit": "megabytes"}}
+    },
+    {
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 14},
+      "title": "对话请求趋势 (每小时)",
+      "type": "timeseries",
+      "targets": [{"datasource": "Loki", "expr": "sum(count_over_time({container_name=\"kb-backend\"} |= \"app.chat\" [1h]))", "legendFormat": "Chats/hour"}]
+    },
+    {
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 14},
+      "title": "节点延迟分布 (P50/P90/P95)",
+      "type": "timeseries",
+      "targets": [{"datasource": "Loki", "expr": "avg_over_time({container_name=\"kb-backend\"} | json | unwrap latency_ms [15m])", "legendFormat": "avg_latency_ms"}]
+    },
+    {
+      "gridPos": {"h": 6, "w": 24, "x": 0, "y": 22},
+      "title": "最近错误日志",
+      "type": "logs",
+      "targets": [{"datasource": "Loki", "expr": "{container_name=\"kb-backend\"} |= \"error\" | json"}],
+      "options": {"showTime": true, "showLabels": false, "wrapLogMessage": true}
+    }
+  ]
+}

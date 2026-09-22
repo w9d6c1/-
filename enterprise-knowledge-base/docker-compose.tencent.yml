@@ -1,0 +1,95 @@
+services:
+  backend:
+    deploy:
+      resources:
+        limits:
+          memory: "2G"
+          cpus: "1.0"
+
+  elasticsearch:
+    deploy:
+      resources:
+        limits:
+          memory: "1G"
+          cpus: "0.5"
+    environment:
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+
+  mysql:
+    deploy:
+      resources:
+        limits:
+          memory: "512M"
+          cpus: "0.5"
+    ports:
+      - "127.0.0.1:3307:3306"
+
+  postgres:
+    deploy:
+      resources:
+        limits:
+          memory: "128M"
+          cpus: "0.3"
+
+  redis:
+    deploy:
+      resources:
+        limits:
+          memory: "64M"
+          cpus: "0.2"
+
+  milvus:
+    deploy:
+      resources:
+        limits:
+          memory: "2G"
+          cpus: "1.0"
+
+  minio:
+    deploy:
+      resources:
+        limits:
+          memory: "128M"
+          cpus: "0.3"
+
+  prometheus:
+    deploy:
+      resources:
+        limits:
+          memory: "128M"
+          cpus: "0.3"
+
+  grafana:
+    deploy:
+      resources:
+        limits:
+          memory: "48M"
+          cpus: "0.2"
+
+  loki:
+    deploy:
+      resources:
+        limits:
+          memory: "64M"
+          cpus: "0.3"
+
+  waf:
+    deploy:
+      resources:
+        limits:
+          memory: "128M"
+          cpus: "0.3"
+
+  nginx:
+    deploy:
+      resources:
+        limits:
+          memory: "64M"
+          cpus: "0.3"
+
+  promtail:
+    deploy:
+      resources:
+        limits:
+          memory: "64M"
+          cpus: "0.2"

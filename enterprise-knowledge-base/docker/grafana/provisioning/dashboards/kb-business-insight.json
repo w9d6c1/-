@@ -1,0 +1,63 @@
+{
+  "uid": "kb-business-insight",
+  "title": "业务洞察",
+  "tags": ["knowledge-base", "business"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "refresh": "30s",
+  "panels": [
+    {
+      "gridPos": {"h": 4, "w": 4, "x": 0, "y": 0},
+      "title": "今日问答总数",
+      "type": "stat",
+      "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}}},
+      "targets": [{"datasource": "Loki", "expr": "sum(count_over_time({container_name=\"kb-backend\"} |= \"final_answer\" [24h]))"}],
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "gridPos": {"h": 4, "w": 4, "x": 4, "y": 0},
+      "title": "FAQ 命中率",
+      "type": "gauge",
+      "fieldConfig": {"defaults": {"unit": "percent", "min": 0, "max": 100, "thresholds": {"steps": [{"value": 60, "color": "red"}, {"value": 80, "color": "orange"}, {"value": 90, "color": "green"}]}}},
+      "targets": [{"datasource": "Loki", "expr": "sum(count_over_time({container_name=\"kb-backend\"} |= \"faq_hit\" |= \"true\" [24h])) / sum(count_over_time({container_name=\"kb-backend\"} |= \"final_answer\" [24h])) * 100"}],
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "gridPos": {"h": 4, "w": 4, "x": 8, "y": 0},
+      "title": "转人工次数",
+      "type": "stat",
+      "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "thresholds": {"steps": [{"value": 20, "color": "green"}, {"value": 50, "color": "orange"}, {"value": 100, "color": "red"}]}}},
+      "targets": [{"datasource": "Loki", "expr": "sum(count_over_time({container_name=\"kb-backend\"} |= \"needs_human\" |= \"True\" [24h]))"}],
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "gridPos": {"h": 4, "w": 4, "x": 12, "y": 0},
+      "title": "用户满意度",
+      "type": "gauge",
+      "fieldConfig": {"defaults": {"unit": "percent", "min": 0, "max": 100, "thresholds": {"steps": [{"value": 70, "color": "red"}, {"value": 85, "color": "orange"}, {"value": 95, "color": "green"}]}}},
+      "targets": [{"datasource": "Loki", "expr": "sum(count_over_time({container_name=\"kb-backend\"} |= \"rating\" |= \"like\" [30d])) / sum(count_over_time({container_name=\"kb-backend\"} |= \"rating\" [30d])) * 100"}],
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "gridPos": {"h": 10, "w": 24, "x": 0, "y": 4},
+      "title": "近7天每日对话趋势",
+      "type": "barchart",
+      "targets": [{"datasource": "Loki", "expr": "sum(count_over_time({container_name=\"kb-backend\"} |= \"app.chat\" [1d])) by (date)", "legendFormat": "对话数"}]
+    },
+    {
+      "gridPos": {"h": 12, "w": 12, "x": 0, "y": 14},
+      "title": "敏感词拦截统计",
+      "type": "timeseries",
+      "targets": [{"datasource": "Loki", "expr": "sum(count_over_time({container_name=\"kb-backend\"} |= \"blocked\" [1h]))", "legendFormat": "被拦截请求"}]
+    },
+    {
+      "gridPos": {"h": 12, "w": 12, "x": 12, "y": 14},
+      "title": "内部 vs 客服对话分布",
+      "type": "piechart",
+      "targets": [
+        {"datasource": "Loki", "expr": "sum(count_over_time({container_name=\"kb-backend\"} |= \"internal\" [7d]))", "legendFormat": "内部问答"},
+        {"datasource": "Loki", "expr": "sum(count_over_time({container_name=\"kb-backend\"} |= \"customer\" [7d]))", "legendFormat": "客服咨询"}
+      ]
+    }
+  ]
+}

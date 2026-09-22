@@ -1,0 +1,39 @@
+[project]
+name = "enterprise-knowledge-base"
+version = "0.1.0"
+description = "企业私有化知识库与双智能体系统"
+requires-python = ">=3.11"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP", "B", "C4", "SIM"]
+
+[tool.ruff.lint.per-file-ignores]
+"app/models/document.py" = ["E501"]  # DocChunk 注释略超行宽（既有无碍）
+"app/retrieval/milvus_client.py" = ["E501"]  # _get_client 一行略超
+"app/retrieval/es_client.py" = ["E501"]  # 索引/搜索行略超
+"app/agents/nodes/generate.py" = ["F841", "E501"]  # 既有未用变量 + Prompt 长行
+"app/agents/customer/generate.py" = ["F841", "E501"]  # 既有未用变量 + Prompt 长行
+"app/agents/graph.py" = ["E501"]  # 边定义长行
+"app/agents/customer_graph.py" = ["E501"]  # 边定义长行
+"app/api/agent/__init__.py" = ["E501"]  # SSE done 事件行长
+"app/api/admin/source_content.py" = ["E501"]  # 路由响应模型行长
+"tests/unit/test_day4_nodes.py" = ["E501"]  # 测试数据构造行长
+"app/articles/hot_topics.py" = ["E501"]  # 推荐 Prompt 长行
+"app/copywriting/recommend.py" = ["E501"]  # 文案推荐 Prompt 长行
+"app/copywriting/script_service.py" = ["E501"]  # 脚本 Prompt 长行
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--cov=app --cov-report=term-missing --cov-fail-under=80"
+asyncio_mode = "auto"

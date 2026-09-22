@@ -1,0 +1,59 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+.venv/
+venv/
+.env
+.env.prod
+*.log
+
+# Node
+node_modules/
+dist/
+.vite/
+
+# IDE
+.vscode/
+.idea/
+.vscode/enterprise-knowledge-base/
+
+# Docker volumes
+docker/volumes/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# SSL 证书和私钥
+docker/ssl/
+
+# 覆盖率报告
+.coverage
+htmlcov/
+
+# 模型缓存
+backend/models_cache/
+
+# 数据文件
+backend/data/
+
+# 模型文件 (通过部署脚本下载)
+/models/
+!/models/.gitkeep
+# 放行 backend 的 Python 模型代码目录（app/models 是 SQLAlchemy ORM 模型，非模型文件）
+!backend/app/models/
+!backend/app/models/**
+
+# 调试/测试脚本
+backend/check_*.py
+backend/debug_*.py
+backend/verify_*.py
+backend/load_faq_vectors.py
+backend/rbac_*.py
+backend/rbac_*.sh
+backend/scripts/debug_*.py
+backend/scripts/e2e_trial_run.py
+
+

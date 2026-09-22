@@ -1,0 +1,22 @@
+# IDE
+.vscode/
+.idea/
+
+# 开发笔记和报告 (根目录)
+/*.pdf
+/*.md
+# 放行项目 README
+!/README.md
+
+# 缓存
+reranker_cache/
+
+# 根目录杂项（部署无关）
+杂物/
+/docs/
+
+# OCR 模型（大文件，部署时另行下载，见 README）
+enterprise-knowledge-base/backend/ocr_models/*.onnx
+
+# 前端测试产物
+enterprise-knowledge-base/frontend/test-results/

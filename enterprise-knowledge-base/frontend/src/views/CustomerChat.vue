@@ -1,0 +1,148 @@
+<template>
+  <el-container class="chat-page">
+    <el-container class="chat-main">
+      <el-header class="chat-header">
+        <span class="header-title">客服咨询</span>
+        <el-button size="small" @click="chat.newThread()" :icon="Plus">新对话</el-button>
+      </el-header>
+
+      <el-main class="chat-body" ref="chatBodyRef">
+        <div v-if="chat.messages.length === 0" class="empty-hint">
+          <el-empty description="您好，有什么可以帮助您的？" />
+        </div>
+        <div
+          v-for="msg in chat.messages"
+          :key="msg.id"
+          class="message-row"
+          :class="msg.role"
+        >
+          <div class="message-bubble" :class="msg.role">
+            <div class="msg-content">
+              <CitationRenderer
+                :content="msg.content"
+                :citations="msg.citations"
+                :images="msg.images"
+                :is-streaming="msg.isStreaming"
+              />
+            </div>
+            <div v-if="msg.role === 'ai'" class="msg-meta">
+              <el-tag v-if="msg.confidence !== undefined" size="small" :type="confidenceType(msg.confidence)">
+                置信度: {{ (msg.confidence * 100).toFixed(0) }}%
+              </el-tag>
+              <el-tag v-if="msg.faqHit" size="small" type="success">FAQ命中</el-tag>
+              <el-tag v-if="msg.needsHuman" size="small" type="warning">建议转人工</el-tag>
+              <span class="feedback-btns">
+                <el-button
+                  size="small"
+                  text
+                  :type="chat.ratedMessages[msg.id] === 'like' ? 'primary' : 'default'"
+                  @click="chat.rateMessage(msg.id, 'like')"
+                >👍 有帮助</el-button>
+                <el-button
+                  size="small"
+                  text
+                  :type="chat.ratedMessages[msg.id] === 'dislike' ? 'danger' : 'default'"
+                  @click="chat.rateMessage(msg.id, 'dislike')"
+                >👎 没帮助</el-button>
+              </span>
+            </div>
+          </div>
+        </div>
+        <div v-if="chat.isStreaming && lastAIMsg?.isStreaming" class="typing-hint">AI 正在思考...</div>
+      </el-main>
+
+      <el-footer class="chat-footer">
+        <el-input
+          v-model="inputText"
+          type="textarea"
+          :rows="2"
+          placeholder="请输入您的问题..."
+          @keydown.enter.exact.prevent="handleSend"
+          :disabled="chat.isStreaming"
+        />
+        <el-button
+          type="primary"
+          :icon="Promotion"
+          @click="handleSend"
+          :disabled="chat.isStreaming || !inputText.trim()"
+        >发送</el-button>
+      </el-footer>
+    </el-container>
+  </el-container>
+</template>
+
+<script setup lang="ts">
+import { ref, computed, watch, nextTick, onMounted } from "vue";
+import { Plus, Promotion } from "@element-plus/icons-vue";
+import { useChatStore } from "@/stores/chat";
+import CitationRenderer from "@/components/CitationRenderer.vue";
+
+const chat = useChatStore();
+const inputText = ref("");
+const chatBodyRef = ref<HTMLElement | null>(null);
+
+onMounted(() => {
+  chat.agentType = "customer";
+  chat.newThread();
+});
+
+const lastAIMsg = computed(() => {
+  return chat.messages.filter((m) => m.role === "ai").pop();
+});
+
+function confidenceType(val: number | undefined): "success" | "warning" | "danger" | "info" {
+  if (val === undefined) return "info";
+  if (val >= 0.8) return "success";
+  if (val >= 0.5) return "warning";
+  return "danger";
+}
+
+async function handleSend() {
+  const msg = inputText.value.trim();
+  if (!msg || chat.isStreaming) return;
+  inputText.value = "";
+  await chat.sendMessage(msg);
+  await nextTick();
+  scrollToBottom();
+}
+
+watch(
+  () => chat.messages.length,
+  async () => {
+    await nextTick();
+    scrollToBottom();
+  }
+);
+
+function scrollToBottom() {
+  if (chatBodyRef.value) {
+    chatBodyRef.value.scrollTop = chatBodyRef.value.scrollHeight;
+  }
+}
+</script>
+
+<style scoped>
+.chat-page { height: 100vh; background: #f5f7fa; }
+.chat-main { display: flex; flex-direction: column; max-width: 900px; margin: 0 auto; width: 100%; background: #fff; }
+.chat-header { background: #fff; border-bottom: 1px solid #ebeef5; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; height: 56px; }
+.header-title { font-size: 16px; font-weight: 600; color: #303133; }
+
+.chat-body { flex: 1; overflow-y: auto; padding: 20px 40px; background: #f5f7fa; }
+.empty-hint { display: flex; justify-content: center; align-items: center; height: 100%; }
+
+.message-row { display: flex; margin-bottom: 16px; }
+.message-row.user { justify-content: flex-end; }
+.message-row.ai { justify-content: flex-start; }
+
+.message-bubble { max-width: 70%; padding: 12px 16px; border-radius: 12px; font-size: 14px; line-height: 1.6; }
+.message-bubble.user { background: #409eff; color: #fff; border-bottom-right-radius: 4px; }
+.message-bubble.ai { background: #fff; border: 1px solid #ebeef5; border-bottom-left-radius: 4px; }
+.msg-meta { margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.feedback-btns { margin-left: auto; }
+.msg-content { word-break: break-word; }
+
+.typing-hint { font-size: 12px; color: #909399; padding: 4px 0 0 40px; }
+
+.chat-footer { background: #fff; border-top: 1px solid #ebeef5; display: flex; gap: 12px; align-items: flex-end; padding: 12px 20px; height: auto; }
+.chat-footer .el-textarea { flex: 1; }
+</style>

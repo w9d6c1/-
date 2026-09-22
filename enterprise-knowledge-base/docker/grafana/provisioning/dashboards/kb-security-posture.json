@@ -1,0 +1,83 @@
+{
+  "uid": "kb-security-posture",
+  "title": "安全态势",
+  "tags": ["knowledge-base", "security"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "refresh": "10s",
+  "panels": [
+    {
+      "gridPos": {"h": 4, "w": 4, "x": 0, "y": 0},
+      "title": "今日拦截总数",
+      "type": "stat",
+      "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "thresholds": {"steps": [{"value": 0, "color": "green"}, {"value": 10, "color": "orange"}, {"value": 50, "color": "red"}]}}},
+      "targets": [{"datasource": "Loki", "expr": "sum(count_over_time({container_name=\"kb-backend\"} |= \"blocked\" [24h]))"}],
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "gridPos": {"h": 4, "w": 4, "x": 4, "y": 0},
+      "title": "SQL注入拦截",
+      "type": "stat",
+      "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "thresholds": {"steps": [{"value": 0, "color": "green"}, {"value": 1, "color": "orange"}, {"value": 5, "color": "red"}]}}},
+      "targets": [{"datasource": "Loki", "expr": "sum(count_over_time({container_name=\"kb-backend\"} |= \"sql_injection\" [24h]))"}],
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "gridPos": {"h": 4, "w": 4, "x": 8, "y": 0},
+      "title": "Prompt注入拦截",
+      "type": "stat",
+      "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "thresholds": {"steps": [{"value": 0, "color": "green"}, {"value": 1, "color": "orange"}, {"value": 5, "color": "red"}]}}},
+      "targets": [{"datasource": "Loki", "expr": "sum(count_over_time({container_name=\"kb-backend\"} |= \"prompt_injection\" [24h]))"}],
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "gridPos": {"h": 4, "w": 4, "x": 12, "y": 0},
+      "title": "敏感词命中",
+      "type": "stat",
+      "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "thresholds": {"steps": [{"value": 0, "color": "green"}, {"value": 20, "color": "orange"}, {"value": 100, "color": "red"}]}}},
+      "targets": [{"datasource": "Loki", "expr": "sum(count_over_time({container_name=\"kb-backend\"} |= \"sensitive_word\" [24h]))"}],
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "gridPos": {"h": 4, "w": 4, "x": 16, "y": 0},
+      "title": "认证失败次数",
+      "type": "stat",
+      "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "thresholds": {"steps": [{"value": 0, "color": "green"}, {"value": 10, "color": "orange"}, {"value": 30, "color": "red"}]}}},
+      "targets": [{"datasource": "Loki", "expr": "sum(count_over_time({container_name=\"kb-backend\"} |= \"auth_failure\" [24h]))"}],
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "gridPos": {"h": 4, "w": 4, "x": 20, "y": 0},
+      "title": "越权尝试",
+      "type": "stat",
+      "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "thresholds": {"steps": [{"value": 0, "color": "green"}, {"value": 1, "color": "red"}]}}},
+      "targets": [{"datasource": "Loki", "expr": "sum(count_over_time({container_name=\"kb-backend\"} |= \"unauthorized\" [24h]))"}],
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "gridPos": {"h": 10, "w": 24, "x": 0, "y": 4},
+      "title": "安全事件趋势 (7天)",
+      "type": "timeseries",
+      "targets": [
+        {"datasource": "Loki", "expr": "sum(count_over_time({container_name=\"kb-backend\"} |= \"sensitive_word\" [1d]))", "legendFormat": "敏感词拦截"},
+        {"datasource": "Loki", "expr": "sum(count_over_time({container_name=\"kb-backend\"} |= \"sql_injection\" [1d]))", "legendFormat": "SQL注入"},
+        {"datasource": "Loki", "expr": "sum(count_over_time({container_name=\"kb-backend\"} |= \"prompt_injection\" [1d]))", "legendFormat": "Prompt注入"},
+        {"datasource": "Loki", "expr": "sum(count_over_time({container_name=\"kb-backend\"} |= \"auth_failure\" [1d]))", "legendFormat": "认证失败"}
+      ]
+    },
+    {
+      "gridPos": {"h": 10, "w": 12, "x": 0, "y": 14},
+      "title": "最近安全事件流水",
+      "type": "logs",
+      "targets": [{"datasource": "Loki", "expr": "{container_name=\"kb-backend\"} |~ \"sensitive_word|sql_injection|prompt_injection|auth_failure|unauthorized\" | json"}],
+      "options": {"showTime": true, "showLabels": true, "wrapLogMessage": true}
+    },
+    {
+      "gridPos": {"h": 10, "w": 12, "x": 12, "y": 14},
+      "title": "IP 白名单拒绝日志",
+      "type": "logs",
+      "targets": [{"datasource": "Loki", "expr": "{container_name=\"kb-nginx\"} |~ \"403|denied\" | json"}],
+      "options": {"showTime": true, "showLabels": false, "wrapLogMessage": true}
+    }
+  ]
+}

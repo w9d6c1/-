@@ -1,0 +1,71 @@
+{
+  "uid": "kb-knowledge-quality",
+  "title": "知识质量",
+  "tags": ["knowledge-base", "quality"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "refresh": "30s",
+  "panels": [
+    {
+      "gridPos": {"h": 4, "w": 4, "x": 0, "y": 0},
+      "title": "知识文档总数",
+      "type": "stat",
+      "targets": [{"datasource": "Prometheus", "expr": "mysql_global_status_questions{job=\"mysql\"}"}],
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "gridPos": {"h": 4, "w": 4, "x": 4, "y": 0},
+      "title": "FAQ 在线数",
+      "type": "stat",
+      "targets": [{"datasource": "Loki", "expr": "sum(count_over_time({container_name=\"kb-backend\"} |= \"faq_vectors_loaded\" | json | unwrap count [1m]))"}],
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "gridPos": {"h": 4, "w": 4, "x": 8, "y": 0},
+      "title": "待审文档数",
+      "type": "stat",
+      "fieldConfig": {"defaults": {"thresholds": {"steps": [{"value": 0, "color": "green"}, {"value": 5, "color": "orange"}, {"value": 10, "color": "red"}]}}},
+      "targets": [{"datasource": "Loki", "expr": "avg_over_time({container_name=\"kb-backend\"} |= \"pending_reviews\" | json | unwrap pending_reviews [5m])"}],
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "gridPos": {"h": 4, "w": 4, "x": 12, "y": 0},
+      "title": "未命中待处理",
+      "type": "stat",
+      "fieldConfig": {"defaults": {"thresholds": {"steps": [{"value": 0, "color": "green"}, {"value": 10, "color": "orange"}, {"value": 30, "color": "red"}]}}},
+      "targets": [{"datasource": "Loki", "expr": "avg_over_time({container_name=\"kb-backend\"} |= \"unanswered\" | json | unwrap pending_unanswered [5m])"}],
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4},
+      "title": "向量同步状态 (最近 100 条)",
+      "type": "table",
+      "targets": [{"datasource": "Loki", "expr": "{container_name=\"kb-backend\"} |= \"sync\" | json | line_format \"{{.doc_id}} {{.status}} {{.timestamp}}\""}],
+      "options": {"showHeader": true}
+    },
+    {
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4},
+      "title": "ES 索引状态",
+      "type": "stat",
+      "fieldConfig": {"defaults": {"mappings": [{"type": "value", "value": 1, "text": "Green"}, {"type": "value", "value": 2, "text": "Yellow"}, {"type": "value", "value": 3, "text": "Red"}]}},
+      "targets": [{"datasource": "Prometheus", "expr": "elasticsearch_cluster_health_status{cluster=\"elasticsearch\"}", "legendFormat": "ES Health"}],
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 12},
+      "title": "反馈评价分布 (近30天)",
+      "type": "piechart",
+      "targets": [
+        {"datasource": "Loki", "expr": "sum(count_over_time({container_name=\"kb-backend\"} |= \"rating\" |= \"like\" [30d]))", "legendFormat": "点赞"},
+        {"datasource": "Loki", "expr": "sum(count_over_time({container_name=\"kb-backend\"} |= \"rating\" |= \"dislike\" [30d]))", "legendFormat": "踩"}
+      ]
+    },
+    {
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 12},
+      "title": "Milvus 集合状态",
+      "type": "table",
+      "targets": [{"datasource": "Prometheus", "expr": "milvus_collection_num_entities", "legendFormat": "{{collection}}"}],
+      "options": {"showHeader": true}
+    }
+  ]
+}

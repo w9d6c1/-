@@ -1,0 +1,160 @@
+# Prometheus 告警规则 — 企业知识库系统
+
+groups:
+  - name: kb_service_alerts
+    rules:
+
+      # ── 服务健康 ──
+      - alert: BackendDown
+        expr: up{job="backend"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          category: service_health
+        annotations:
+          summary: "Backend 服务不可用"
+          description: "{{ $labels.instance }} — Backend 服务已停止超过 2 分钟"
+
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          category: service_health
+        annotations:
+          summary: "5xx 错误率过高 (>5%)"
+          description: "{{ $labels.instance }} — 过去5分钟错误率 {{ $value | humanizePercentage }}"
+
+      # ── 安全问题 ──
+      - alert: SQLInjectionAttempt
+        expr: rate(kb_security_events_total{event_type="sql_injection"}[5m]) > 0
+        for: 1m
+        labels:
+          severity: high
+          category: security
+        annotations:
+          summary: "检测到 SQL 注入攻击"
+          description: "{{ $labels.instance }} — 过去5分钟发生 {{ $value }} 次 SQL 注入尝试"
+
+      - alert: PromptInjectionAttempt
+        expr: rate(kb_security_events_total{event_type="prompt_injection"}[5m]) > 0
+        for: 1m
+        labels:
+          severity: high
+          category: security
+        annotations:
+          summary: "检测到 Prompt 注入攻击"
+          description: "{{ $labels.instance }} — 过去5分钟发生 {{ $value }} 次 Prompt 注入尝试"
+
+      - alert: SensitiveWordHit
+        expr: rate(kb_security_events_total{event_type="sensitive_word"}[5m]) > 2
+        for: 5m
+        labels:
+          severity: medium
+          category: security
+        annotations:
+          summary: "敏感词命中频率异常"
+          description: "{{ $labels.instance }} — 过去5分钟敏感词命中 {{ $value }} 次"
+
+      - alert: UnauthorizedAccessSpike
+        expr: rate(http_requests_total{status="401"}[5m]) > 10
+        for: 5m
+        labels:
+          severity: high
+          category: security
+        annotations:
+          summary: "未授权访问激增"
+          description: "{{ $labels.instance }} — 过去5分钟有 {{ $value }} 次 401 请求"
+
+      - alert: CrossScopeLeakageDetected
+        expr: kb_cross_scope_leak_total > 0
+        for: 1m
+        labels:
+          severity: critical
+          category: security
+        annotations:
+          summary: "检测到跨库泄漏"
+          description: "{{ $labels.instance }} — 跨库隔离泄漏事件发生"
+
+      # ── 业务指标 ──
+      - alert: RetrievalHitRateLow
+        expr: (sum(rate(kb_retrieval_hit_total[15m])) / sum(rate(kb_retrieval_total[15m]))) < 0.7
+        for: 10m
+        labels:
+          severity: warning
+          category: business
+        annotations:
+          summary: "检索命中率低于 70%"
+          description: "{{ $labels.instance }} — 当前命中率 {{ $value | humanizePercentage }}，知识质量可能下降"
+
+      - alert: HumanEscalationSpike
+        expr: rate(kb_needs_human_total[5m]) > 5
+        for: 5m
+        labels:
+          severity: warning
+          category: business
+        annotations:
+          summary: "转人工率突增"
+          description: "{{ $labels.instance }} — 过去5分钟有 {{ $value }} 次转向人工请求，可能表示知识库覆盖不足"
+
+      - alert: SatisfactionDecline
+        expr: (sum(rate(kb_rating_like_total[15m])) / (sum(rate(kb_rating_like_total[15m])) + sum(rate(kb_rating_dislike_total[15m])))) < 0.5
+        for: 15m
+        labels:
+          severity: warning
+          category: business
+        annotations:
+          summary: "用户满意度下降"
+          description: "{{ $labels.instance }} — 当前满意度 {{ $value | humanizePercentage }}，低于 50% 阈值"
+
+      # ── 性能 ──
+      - alert: HighLatency
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 3
+        for: 5m
+        labels:
+          severity: warning
+          category: performance
+        annotations:
+          summary: "P95 响应延迟超过 3s"
+          description: "{{ $labels.instance }} — P95 延迟 {{ $value }}s"
+
+      - alert: FAQLatencyHigh
+        expr: histogram_quantile(0.95, rate(kb_faq_match_duration_seconds_bucket[5m])) > 0.3
+        for: 5m
+        labels:
+          severity: warning
+          category: performance
+        annotations:
+          summary: "FAQ P95 延迟超过 300ms"
+          description: "{{ $labels.instance }} — FAQ匹配 P95 延迟 {{ $value }}s"
+
+      # ── 资源 ──
+      - alert: HighCPUUsage
+        expr: rate(process_cpu_seconds_total[5m]) * 100 > 80
+        for: 10m
+        labels:
+          severity: warning
+          category: resource
+        annotations:
+          summary: "CPU 使用率持续超过 80%"
+          description: "{{ $labels.instance }} CPU 使用率 {{ $value }}%"
+
+      - alert: HighMemoryUsage
+        expr: process_resident_memory_bytes / 1024 / 1024 / 1024 > 4
+        for: 10m
+        labels:
+          severity: warning
+          category: resource
+        annotations:
+          summary: "内存使用超过 4GB"
+          description: "{{ $labels.instance }} 内存使用 {{ $value }}GB"
+
+      - alert: DiskSpaceLow
+        expr: (node_filesystem_avail_bytes / node_filesystem_size_bytes) * 100 < 10
+        for: 5m
+        labels:
+          severity: critical
+          category: resource
+        annotations:
+          summary: "磁盘空间不足 10%"
+          description: "{{ $labels.instance }} 磁盘剩余 {{ $value }}%"

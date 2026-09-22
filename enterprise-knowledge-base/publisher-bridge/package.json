@@ -1,0 +1,16 @@
+{
+  "name": "enterprise-kb-publisher-bridge",
+  "version": "1.0.0",
+  "description": "发布桥接器 — 接收后端发布请求，按账号组路由到 Chrome 扩展",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.mjs",
+    "check": "npx wechatsync --version",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@wechatsync/cli": "1.1.0",
+    "express": "^4.21.0",
+    "ws": "^8.21.1"
+  }
+}
