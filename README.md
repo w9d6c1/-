@@ -10,6 +10,18 @@
 
 ---
 
+## 在线演示（静态预览）
+
+无需后端即可浏览前端界面（数据均为模拟）：
+
+- Vue 用户端：<https://w9d6c1.github.io/-/>
+- React 管理后台：<https://w9d6c1.github.io/-/app/>
+
+> 演示模式由 `frontend/src/demo.ts` 与 `app/src/demo.ts` 拦截 `/api/*` 请求返回模拟数据，
+> 仅在 `VITE_DEMO=1` 时启用；真实环境请接入后端（见下方「生产部署」）。
+
+---
+
 ## 技术栈
 
 | 层 | 技术 |

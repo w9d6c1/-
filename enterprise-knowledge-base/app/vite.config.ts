@@ -5,7 +5,8 @@ import { defineConfig } from "vitest/config"
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: '/app/',
+  // 静态托管在子路径时可通过 VITE_ADMIN_BASE 覆盖，例如 GitHub Pages 的 "/<repo>/app/"
+  base: process.env.VITE_ADMIN_BASE || '/app/',
   plugins: [react()],
   resolve: {
     alias: {

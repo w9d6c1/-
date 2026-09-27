@@ -4,6 +4,8 @@ import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 
 export default defineConfig({
+  // 静态托管在子路径时可通过 VITE_BASE 覆盖，例如 GitHub Pages 的 "/<repo>/"
+  base: process.env.VITE_BASE || "/",
   plugins: [vue()],
   resolve: {
     alias: {
