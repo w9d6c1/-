@@ -1,0 +1,10 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "echo \"dependencies are installed by the build script\"",
+  "buildCommand": "node scripts/build-static.mjs",
+  "outputDirectory": "frontend/dist",
+  "rewrites": [
+    { "source": "/app", "destination": "/app/index.html" }
+  ]
+}
