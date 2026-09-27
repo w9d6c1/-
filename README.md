@@ -19,6 +19,9 @@
 
 > 演示模式由 `frontend/src/demo.ts` 与 `app/src/demo.ts` 拦截 `/api/*` 请求返回模拟数据，
 > 仅在 `VITE_DEMO=1` 时启用；真实环境请接入后端（见下方「生产部署」）。
+>
+> 部署方式：`.github/workflows/deploy-pages.yml` 在 push 到 `main` 时自动构建并发布；
+> 首次需在仓库 **Settings → Pages** 将 Source 设为 **GitHub Actions**。
 
 ---
 
